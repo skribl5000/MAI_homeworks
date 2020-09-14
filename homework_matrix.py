@@ -39,7 +39,7 @@ def benchmark(func):
             times[func.__name__] += time.time() - t
         else:
             times[func.__name__] = time.time() - t
-        print(func.__name__, time.time() - t)
+        # print(func.__name__, time.time() - t)
         return res
 
     return wrapper
@@ -172,15 +172,19 @@ class SquareMatrix(Matrix):
             return self[0][0] * self[1][1] - self[1][0] * self[0][1]
         else:
             result = 0
-            for current_row_number in range(len(self)):
-                matrix_with_null = self.make_first_column_null(self)
-                # small_matrix = self.get_minor(current_row_number)
-                # result += (-1) ** (current_row_number + 2) * self[current_row_number][0] * SquareMatrix(
-                #     small_matrix).get_determinant()
+            matrix_for_solve = self.make_first_column_null(self)
+            result += (-1) ** 2 * self[0][0] * SquareMatrix(
+                matrix_for_solve.get_minor(0)).get_determinant()
 
-                small_matrix = self.get_minor(current_row_number)
-                result += (-1) ** (current_row_number + 2) * self[current_row_number][0] * SquareMatrix(
-                    small_matrix).get_determinant()
+            # for current_row_number in range(len(self)):
+            #     matrix_with_null = self.make_first_column_null(self)
+            #     small_matrix = self.get_minor(current_row_number)
+            #     result += (-1) ** (current_row_number + 2) * self[current_row_number][0] * SquareMatrix(
+            #         small_matrix).get_determinant()
+            #
+            #     small_matrix = self.get_minor(current_row_number)
+            #     result += (-1) ** (current_row_number + 2) * self[current_row_number][0] * SquareMatrix(
+            #         small_matrix).get_determinant()
 
 
             return result
@@ -196,10 +200,17 @@ class SquareMatrix(Matrix):
     @staticmethod
     def make_first_column_null(matrix):
         new_matrix = matrix.copy()
+        i = len(matrix)-1
+        while new_matrix[0][0] == 0:
+            new_matrix[0], new_matrix[i] = new_matrix[i], new_matrix[0]
+            i -= 1
+            if i == 0:
+                raise ArithmeticError('Matrix contains zero string. Can not be solved.')
+
         for row_num in range(1, len(new_matrix)):
             coefficient = - new_matrix[row_num][0] / new_matrix[0][0]
-            new_matrix[row_num] = MatrixRow(new_matrix[row_num] + coefficient * new_matrix[0)
-        return Matrix(new_matrix)
+            new_matrix[row_num] = MatrixRow(new_matrix[row_num] + coefficient * new_matrix[0])
+        return SquareMatrix(new_matrix)
 
     @benchmark
     def kramer(self, vector) -> list:
@@ -312,30 +323,36 @@ m = SquareMatrix([
     [-2, 2, 3],
 ])
 
-n = int(input('Type size of matrix (n): '))
-l = float(input('Type left border for random values: '))
-r = float(input('Type right border for random values: '))
-eps_len = int(input('Type the number of symbols after comma (default 5): '))
-
-values = generate_values(n, l, r, eps_len)
-create_file_with_values(values, 'random_values.txt', ' ')
-
-matrix = GeneratedMatrixWithVector('random_values.txt', ' ')
-ti = time.time()
-print(matrix.kramer_solve())
-print(times)
-
-print('total time: ', time.time()-ti)
-# times = []
+# n = int(input('Type size of matrix (n): '))
+# l = float(input('Type left border for random values: '))
+# r = float(input('Type right border for random values: '))
+# eps_len = int(input('Type the number of symbols after comma (default 5): '))
 #
-# for n in range(2,9):
-#     l = 1
-#     r = 10
-#     eps_len = 1
+# values = generate_values(n, l, r, eps_len)
+# create_file_with_values(values, 'random_values.txt', ' ')
 #
-#     values = generate_values(n, l, r, eps_len)
-#     create_file_with_values(values, 'random_values.txt', ' ')
-#     matrix = GeneratedMatrixWithVector('random_values.txt', ' ')
-#     start_time = time.time()
-#     print(matrix.kramer_solve())
-#     times.append(time.time()-start_time)
+# matrix = GeneratedMatrixWithVector('random_values.txt', ' ')
+# ti = time.time()
+# print(matrix.kramer_solve())
+# print(times)
+#
+# print('total time: ', time.time()-ti)
+
+
+timess = []
+
+for n in range(2,75):
+    l = 1
+    r = 10
+    eps_len = 1
+
+    values = generate_values(n, l, r, eps_len)
+    create_file_with_values(values, 'random_values.txt', ' ')
+    matrix = GeneratedMatrixWithVector('random_values.txt', ' ')
+    start_time = time.time()
+    print(matrix.kramer_solve())
+    timess.append(time.time()-start_time)
+
+import matplotlib.pyplot as plt
+plt.plot(range(2,75), timess)
+plt.show()
